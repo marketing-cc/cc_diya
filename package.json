@@ -1,0 +1,16 @@
+{
+  "name": "ccshop-diia-age",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Перевірка віку 18+ через Дію для ccshop.com.ua/checkout/#18 — Vercel Functions + скрипт для Horoshop",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "node tools/dev-server.js",
+    "build:inline": "node tools/build-inline.js",
+    "diia": "node tools/diia-setup.js",
+    "vercel:env": "sh tools/vercel-env.sh"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  }
+}
