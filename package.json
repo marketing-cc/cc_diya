@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Перевірка віку 18+ через Дію для ccshop.com.ua/checkout/#18 — Vercel Functions + скрипт для Horoshop",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "node tools/dev-server.js",
     "build:inline": "node tools/build-inline.js",
@@ -11,6 +13,7 @@
     "vercel:env": "sh tools/vercel-env.sh"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.2",
     "qrcode": "^1.5.4"
   }
 }

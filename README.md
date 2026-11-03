@@ -54,11 +54,13 @@ vercel link --scope mrktng1   # створити новий проєкт, Root D
 
 ### 2. Сховище (обов'язково)
 
-Функції stateless — стан запитів і кеш сесійного токена живуть в **Upstash Redis**:
+Функції stateless — стан запитів і кеш сесійного токена мають жити поза процесом. Код обирає сховище автоматично:
 
-Vercel → проєкт → **Storage** → **Create Database** → *Upstash for Redis* (free tier вистачає) → **Connect to project**. Інтеграція сама додасть `KV_REST_API_URL` і `KV_REST_API_TOKEN` у змінні проєкту. Код читає саме їх (або `UPSTASH_REDIS_REST_URL/TOKEN`).
+1. **Vercel Blob** (за замовчуванням, рідне для Vercel, без Marketplace): `vercel blob create-store cc-diya-store --access private --region fra1 --yes` — створює private-store і сам додає `BLOB_READ_WRITE_TOKEN` у проєкт. (Store `cc-diya-store` уже створено.)
+2. **Upstash Redis** (опціонально, якщо задано `KV_REST_API_URL/TOKEN` — має пріоритет).
+3. Пам'ять процесу — лише для локалки; на Vercel ненадійно.
 
-Без Redis код працює, але тримає стан у пам'яті інстанса — на Vercel це ненадійно (`/health` покаже `"storage":"memory"`).
+`/health` показує активне сховище: `"storage":"blob"`.
 
 ### 3. Змінні оточення
 
@@ -161,7 +163,7 @@ npm run dev                   # http://localhost:3000 — емуляція ро�
 - Функції локально (емуляція Vercel): CORS лише для дозволених origin, 403 для чужих, 405 для неправильного методу, preflight 204, callback з `X-Document-Request-Trace-Id` у будь-якому регістрі та з `Content-Type: aplication/json` (як у доках Дії), цикл `start → status(pending) → callback → status(done)` для `success:true` і `false`; обидва сховища — пам'ять і Redis (REST-протокол Upstash, кеш токена між викликами).
 - Фронт у Chromium на mock-копії чекаута Horoshop: активація лише з `#18`, підміна кнопки, модалка з QR, успіх (повернення кнопки + бейдж), відмова, повторне накриття після перемальовування, збереження стану після перезавантаження.
 
-Не перевірялося: реальний деплой на Vercel з акаунта `mrktng1` (потрібен логін), реальний Upstash, живий `ccshop.com.ua`, застосунок Дія на телефоні з тестовим обліковим записом.
+Не перевірялося: застосунок Дія на телефоні з тестовим обліковим записом.
 
 ## Обмеження
 
