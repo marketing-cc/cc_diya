@@ -18,7 +18,7 @@
     apiBase: scriptOrigin, // адреса Vercel-проєкту з api/diia/age/* (без слеша в кінці)
     hash: '#18',
     pathRe: /^\/checkout\/?$/,
-    buttonText: 'Оформити з підтврдженням віку (+18)',
+    buttonText: 'Підтврдження віку (+18)',
     pollIntervalMs: 2000,
     timeoutMs: 3 * 60 * 1000, // діплінк Дії живе 3 хвилини
     storageKey: 'ccshop_diia_age18',
