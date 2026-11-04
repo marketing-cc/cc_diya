@@ -35,7 +35,9 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
     pollIntervalMs: 2000,
     timeoutMs: 3 * 60 * 1000, // діплінк Дії живе 3 хвилини
     storageKey: 'ccshop_diia_age18',
-    submitSelector: '.checkout-footer__row .j-submit'
+    // Десктоп: .checkout-footer__row .j-submit. Мобільний Horoshop: .form-item--offset button.j-submit.
+    // Беруться всі кнопки оформлення; логін/реєстрація/колбек відсікаються в findOriginals.
+    submitSelector: '.checkout-footer__row .j-submit, .form-item--offset .j-submit, .form-item .j-submit, button.j-submit[type="submit"]'
   };
   if (window.DIIA_AGE_CONFIG) for (var k in window.DIIA_AGE_CONFIG) CONFIG[k] = window.DIIA_AGE_CONFIG[k];
   if (!CONFIG.apiBase) { console.error('[diia-age] не задано apiBase (window.DIIA_AGE_CONFIG.apiBase)'); return; }
@@ -61,20 +63,31 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
   }
   function isVerified() { var s = readState(); return !!(s && s.verified); }
 
+  // унікальний id у clipPath, бо на сторінці може бути кілька копій лого (десктоп + мобільна кнопка + модалка)
+  function logoHtml(svg) {
+    return svg.replace(/diia-clip/g, 'diia-clip-' + Math.random().toString(36).slice(2, 9));
+  }
+
   // ---------- робота з кнопкою ----------
   function findOriginals() {
-    return Array.prototype.slice.call(document.querySelectorAll(CONFIG.submitSelector))
-      .filter(function (b) { return !b.hasAttribute('data-diia-overlay'); });
+    var seen = [];
+    return Array.prototype.slice.call(document.querySelectorAll(CONFIG.submitSelector)).filter(function (b) {
+      if (seen.indexOf(b) !== -1) return false;
+      seen.push(b);
+      if (b.hasAttribute('data-diia-overlay')) return false;
+      if (b.closest('#login_form_id, #signup-form, #password-recovery-form, [data-action*="login"], [data-action*="sign_up"], [data-action*="callback"]')) return false;
+      return true;
+    });
   }
 
   function makeOverlayButton(orig) {
     var btn = document.createElement('button');
     btn.type = 'button';
-    // класи Horoshop лишаємо для розкладки (ширина/відступи), вигляд задає .diia-age-btn (брендбук Дії, стор. 13)
-    btn.className = ('diia-age-btn ' + orig.className.replace(/\b(j-submit|__disabled|__special)\b/g, '')).replace(/\s+/g, ' ').trim();
+    // класи Horoshop лишаємо для розкладки (btn--block на мобільному = на всю ширину); вигляд задає .diia-age-btn
+    btn.className = ('diia-age-btn ' + orig.className.replace(/\b(j-submit|__disabled|__special|btn--primary)\b/g, '')).replace(/\s+/g, ' ').trim();
     btn.setAttribute('data-diia-overlay', '1');
     btn.setAttribute('aria-label', CONFIG.buttonText);
-    btn.innerHTML = LOGO_OUTLINE; // чорна кнопка → контурна версія лого
+    btn.innerHTML = logoHtml(LOGO_OUTLINE);
     var span = document.createElement('span');
     span.className = 'btn-content';
     span.textContent = CONFIG.buttonText;
@@ -104,12 +117,14 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
   }
 
   function markVerifiedBadge() {
-    var row = document.querySelector('.checkout-footer__row');
-    if (!row || row.querySelector('.diia-age-badge')) return;
-    var badge = document.createElement('div');
-    badge.className = 'diia-age-badge';
-    badge.textContent = 'Вік підтверджено через Дію';
-    row.appendChild(badge);
+    findOriginals().forEach(function (orig) {
+      var host = orig.parentNode;
+      if (!host || host.querySelector('.diia-age-badge')) return;
+      var badge = document.createElement('div');
+      badge.className = 'diia-age-badge';
+      badge.textContent = 'Вік підтверджено через Дію';
+      host.appendChild(badge);
+    });
   }
 
   // ---------- модальне вікно ----------
@@ -138,6 +153,7 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
       '.diia-age-btn:disabled{opacity:.6!important;cursor:progress}' +
       '.diia-age-btn svg{display:block;width:32px;height:32px;flex:none}' +
       '.diia-age-btn .btn-content{color:#fff!important}' +
+      '.diia-age-btn.btn--block{width:100%!important;display:flex!important}' +
       '.diia-age-timer{font-size:12px;color:#888;margin-top:8px}' +
       '.diia-age-badge{margin-top:8px;font-size:13px;color:#1e8449;font-weight:600}';
     var st = document.createElement('style');
@@ -160,7 +176,7 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
         '<div class="diia-age-status"></div>' +
         '<div class="diia-age-timer"></div>' +
         '<div class="diia-age-actions">' +
-          '<a class="diia-age-open" href="#" target="_blank" rel="noopener" style="display:none">' + LOGO_OUTLINE + '<span>Відкрити Дію</span></a>' +
+          '<a class="diia-age-open" href="#" target="_blank" rel="noopener" style="display:none">' + logoHtml(LOGO_OUTLINE) + '<span>Відкрити Дію</span></a>' +
           '<button type="button" class="diia-age-cancel">Скасувати</button>' +
         '</div>' +
       '</div>';
