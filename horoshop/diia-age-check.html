@@ -35,9 +35,10 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
     pollIntervalMs: 2000,
     timeoutMs: 3 * 60 * 1000, // діплінк Дії живе 3 хвилини
     storageKey: 'ccshop_diia_age18',
-    // Десктоп: .checkout-footer__row .j-submit. Мобільний Horoshop: .form-item--offset button.j-submit.
-    // Беруться всі кнопки оформлення; логін/реєстрація/колбек відсікаються в findOriginals.
-    submitSelector: '.checkout-footer__row .j-submit, .form-item--offset .j-submit, .form-item .j-submit, button.j-submit[type="submit"]'
+    // Десктоп: .checkout-footer__row .j-submit.
+    // Мобільний Horoshop (theme default_mobile): #checkout-container .form-item--offset button.j-submit.
+    // Модалка Horoshop: button.j-checkout-submit. Логін/реєстрація відсікаються в findOriginals.
+    submitSelector: '.checkout-footer__row .j-submit, #checkout-container button.j-submit[type="submit"], .form-item .j-submit, .form__section--column .j-submit, button.j-checkout-submit'
   };
   if (window.DIIA_AGE_CONFIG) for (var k in window.DIIA_AGE_CONFIG) CONFIG[k] = window.DIIA_AGE_CONFIG[k];
   if (!CONFIG.apiBase) { console.error('[diia-age] не задано apiBase (window.DIIA_AGE_CONFIG.apiBase)'); return; }
@@ -75,7 +76,7 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
       if (seen.indexOf(b) !== -1) return false;
       seen.push(b);
       if (b.hasAttribute('data-diia-overlay')) return false;
-      if (b.closest('#login_form_id, #signup-form, #password-recovery-form, [data-action*="login"], [data-action*="sign_up"], [data-action*="callback"]')) return false;
+      if (b.closest('#login_form_id, #login_form_mobile, #signup-form, #signup-form-mobile, #password-recovery-form, .form-item--checkbox, [data-action*="login"], [data-action*="sign_up"], [data-action*="callback"], [data-action*="coupon"]')) return false;
       return true;
     });
   }
@@ -84,7 +85,7 @@ window.DIIA_AGE_CONFIG = { apiBase: 'https://cc-diya.vercel.app' };
     var btn = document.createElement('button');
     btn.type = 'button';
     // класи Horoshop лишаємо для розкладки (btn--block на мобільному = на всю ширину); вигляд задає .diia-age-btn
-    btn.className = ('diia-age-btn ' + orig.className.replace(/\b(j-submit|__disabled|__special|btn--primary)\b/g, '')).replace(/\s+/g, ' ').trim();
+    btn.className = ('diia-age-btn ' + orig.className.replace(/\b(j-submit|j-checkout-submit|__disabled|__special|btn--primary|is-loading)\b/g, '')).replace(/\s+/g, ' ').trim();
     btn.setAttribute('data-diia-overlay', '1');
     btn.setAttribute('aria-label', CONFIG.buttonText);
     btn.innerHTML = logoHtml(LOGO_OUTLINE);
