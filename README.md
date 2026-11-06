@@ -32,6 +32,7 @@ sequenceDiagram
     A->>V: POST /api/diia/age/callback {requestId, status:"done", success:true|false}
     loop кожні 2 с (до 3 хв)
         H->>V: GET /api/diia/age/status?requestId
+        V->>D: GET /api/v1/acquirers/offer-request/status (якщо callback ще не прийшов)
     end
     V-->>H: {status:"done", success:true}
     H->>H: повертає оригінальну кнопку Horoshop, ставить бейдж
@@ -103,7 +104,7 @@ curl -s "$B/api/diia/age/status?requestId=$ID"     # {"status":"done","success":
 
 ### 5. Повідомити Дію
 
-Передати команді Дії URL callback'а — **`https://<проєкт>.vercel.app/api/diia/age/callback`** — як «точку інтеграції партнера» для вашого acquirer'а. Без цього Дія не знатиме, куди слати `{"success": true/false}`, і перевірка ніколи не завершиться. Якщо згодом підключите власний домен (напр. `diia-age.ccshop.com.ua`) — оновити URL і в Дії.
+Передати команді Дії URL callback'а — **`https://<проєкт>.vercel.app/api/diia/age/callback`** — як «точку інтеграції партнера» для вашого acquirer'а. `/status` також опитує API Дії: якщо callback не дійшов, а Дія вже має `done`/`ok`, перевірка все одно завершиться. Якщо згодом підключите власний домен (напр. `diia-age.ccshop.com.ua`) — оновити URL і в Дії.
 
 ## Підключення у Horoshop
 

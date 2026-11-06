@@ -12,7 +12,18 @@ module.exports = d.handler(['GET'], async (req, res) => {
   if (r.status === 'done') return d.json(res, 200, { status: 'done', success: r.success });
   if (Date.now() - r.createdAt > d.CFG.deeplinkTtlMs + 30 * 1000) return d.json(res, 200, { status: 'expired', success: null });
 
-  // лише діагностика: результат (success) Дія надсилає тільки через callback
-  const diiaStatus = await d.diiaStatus(requestId);
-  d.json(res, 200, { status: 'pending', success: null, diiaStatus });
+  // Callback може не дійти (URL не зареєстрований у Дії). Статус Дії — друге джерело істини.
+  const diia = await d.diiaStatus(requestId);
+  const interpreted = d.interpretOfferStatus(diia.status, diia.success);
+  if (interpreted.done) {
+    r.status = 'done';
+    r.success = interpreted.success;
+    r.doneAt = Date.now();
+    r.diiaStatus = diia.status;
+    await d.saveRequest(requestId, r);
+    console.log(`[status] ${requestId} diia=${diia.status} success=${r.success} region=${process.env.VERCEL_REGION || '-'}`);
+    return d.json(res, 200, { status: 'done', success: r.success, diiaStatus: diia.status });
+  }
+
+  d.json(res, 200, { status: 'pending', success: null, diiaStatus: diia.status });
 });

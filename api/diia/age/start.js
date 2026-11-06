@@ -14,7 +14,7 @@ module.exports = d.handler(['POST'], async (req, res) => {
     const { deeplink } = await d.createDeeplink(requestId, returnLink);
     await d.saveRequest(requestId, { createdAt: Date.now(), status: 'pending', success: null, deeplink, traceId: null, doneAt: null });
     const qr = await d.qrDataUrl(deeplink);
-    console.log(`[start] ${requestId} -> ${deeplink}`);
+    console.log(`[start] ${requestId} -> ${deeplink} region=${process.env.VERCEL_REGION || '-'}`);
     d.json(res, 200, { requestId, deeplink, qr, expiresAt: Date.now() + d.CFG.deeplinkTtlMs, minAge: d.CFG.minAge });
   } catch (e) {
     console.error('[start] diia error:', e.status, e.body || e.message);

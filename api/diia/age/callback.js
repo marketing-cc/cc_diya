@@ -4,6 +4,16 @@
 // Повну URL цього ендпоінта треба передати команді Дії як "точку інтеграції партнера".
 const d = require('../../../lib/diia');
 
+function pickRequestId(body, headers) {
+  const candidates = [
+    body && body.requestId,
+    body && body.request_id,
+    headers['x-document-request-trace-id'],
+  ];
+  for (const c of candidates) if (d.isUuid(c)) return c;
+  return null;
+}
+
 module.exports = d.handler(['POST'], async (req, res) => {
   if (d.CFG.callbackToken) {
     const auth = req.headers.authorization || '';
@@ -13,13 +23,14 @@ module.exports = d.handler(['POST'], async (req, res) => {
   let body;
   try { body = await d.readJson(req); } catch (e) { return d.json(res, 400, { error: e.message }); }
   const traceId = req.headers['x-document-request-trace-id'] || null;
-  const requestId = body.requestId;
-  console.log(`[callback] trace=${traceId} body=${JSON.stringify(body)}`);
+  const requestId = pickRequestId(body || {}, req.headers);
+  console.log(`[callback] region=${process.env.VERCEL_REGION || '-'} trace=${traceId} body=${JSON.stringify(body)}`);
   if (!d.isUuid(requestId)) return d.json(res, 400, { error: 'requestId must be UUID' });
 
+  const interpreted = d.interpretOfferStatus(body.status, body.success);
   const r = (await d.getRequest(requestId)) || { createdAt: Date.now(), deeplink: null };
   r.status = 'done';
-  r.success = body.success === true;
+  r.success = interpreted.done ? interpreted.success : (d.asBool(body.success) === true);
   r.traceId = traceId;
   r.doneAt = Date.now();
   await d.saveRequest(requestId, r);
