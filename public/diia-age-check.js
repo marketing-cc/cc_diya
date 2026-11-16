@@ -16,7 +16,7 @@
 
   var CONFIG = {
     apiBase: scriptOrigin, // адреса Vercel-проєкту з api/diia/age/* (без слеша в кінці)
-    hash: '#18',
+    hash: '',
     pathRe: /^\/checkout\/?$/,
     buttonText: 'Підтврдження віку (+18)',
     pollIntervalMs: 2000,
