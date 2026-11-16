@@ -12,7 +12,7 @@ module.exports = d.handler(['GET'], async (req, res) => {
   if (r.status === 'done') return d.json(res, 200, { status: 'done', success: r.success });
   if (Date.now() - r.createdAt > d.CFG.deeplinkTtlMs + 30 * 1000) return d.json(res, 200, { status: 'expired', success: null });
 
-  // Callback може не дійти (URL не зареєстрований у Дії). Статус Дії — друге джерело істини.
+  // Callback може не дійти (URL не зареєстрований у Дії).
   const diia = await d.diiaStatus(requestId);
   const interpreted = d.interpretOfferStatus(diia.status, diia.success);
   if (interpreted.done) {
